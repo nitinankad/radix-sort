@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import { Editor } from '@monaco-editor/react';
+import io from 'socket.io-client';
+
+const socket = io("http://localhost:8000");
 
 function App() {
   const [code, setCode] = useState("");
@@ -9,8 +12,19 @@ function App() {
     pass`);
   };
 
+  useEffect(() => {
+    socket.on("codeUpdate", (updatedCode) => {
+      console.log(updatedCode);
+    });
+
+    return () => {
+      socket.off("codeUpdate");
+    };
+  }, []);
+
   const handleEditorChange = (value: any, event: any) => {
     setCode(value);
+    socket.emit("codeChange", value);
   };
 
   return (

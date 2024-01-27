@@ -3,11 +3,17 @@ import express, { Express, Request, Response, NextFunction } from "express";
 import morgan from "morgan";
 import echoRoutes from "./routes/echo.route";
 import * as dotenv from "dotenv";
+import { Server, Socket } from "socket.io";
 
 dotenv.config();
 
 const router: Express = express();
 const httpServer = http.createServer(router);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*"
+  }
+});
 const PORT: any = process.env.PORT ?? 8000;
 
 router.use(morgan("dev")); // Logging
@@ -32,6 +38,12 @@ router.use((req: Request, res: Response, next: NextFunction) => {
   const error = new Error("not found");
   return res.status(404).json({
     message: error.message
+  });
+});
+
+io.on("connection", (socket: Socket) => {
+  socket.on("codeChange", () => {
+    socket.emit("codeUpdate", { user: "username", code: "def main(): pass" });
   });
 });
 

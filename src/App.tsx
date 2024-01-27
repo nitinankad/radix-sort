@@ -3,28 +3,86 @@ import './App.css';
 import { Editor } from '@monaco-editor/react';
 import io from 'socket.io-client';
 
+interface User {
+  userId: string;
+  name: string;
+  code: string;
+}
+
 const socket = io("http://localhost:8000");
 
 function App() {
+  const [myCode, setMyCode] = useState("");
+  const [users, setUsers] = useState<User[]>([]);
+
   const [code, setCode] = useState("");
-  const getCode = () => {
-    setCode(`def test():
-    pass`);
+  const [isViewingOthersCode, setIsViewingOthersCode] = useState(false);
+
+  const viewCode = (userId: string, code: string, isOthersCode: boolean) => {
+    const index = users.findIndex(user => user.userId === userId);
+
+    if (index !== -1) {
+      const user = users[index];
+      console.log("Printing user");
+      console.log(user);
+    }
+
+    if (!isOthersCode) {
+      setCode(myCode);
+    } else {
+      setCode(code);
+    }
+    setIsViewingOthersCode(isOthersCode);
+  };
+
+  const updateUserCode = (userId: string, newCode: string) => {
+    console.log(users);
+    const index = users.findIndex(user => user.userId === userId);
+
+    if (index !== -1) {
+      const updatedUsers = [...users];
+      updatedUsers[index] = { ...updatedUsers[index], code: newCode };
+
+      setUsers(updatedUsers);
+    }
   };
 
   useEffect(() => {
-    socket.on("codeUpdate", (updatedCode) => {
+    socket.emit("joined");
+
+    socket.on("welcome", (welcomeData: any) => {
+      const { userId, name, code } = welcomeData;
+      console.log(`Got welcomed: ${JSON.stringify(welcomeData)}`);
+
+      setMyCode(code);
+      setCode(code);
+    });
+
+    socket.on("current users", (currentUsers: any) => {
+      setUsers(prevUsers => [...prevUsers, ...currentUsers]);
+    });
+
+    socket.on("user joined", (userData: any) => {
+      setUsers(prevUsers => [...prevUsers, userData]);
+    });
+
+    socket.on("user left", (userData: any) => {
+      setUsers(prevUsers => prevUsers.filter(user => user.userId !== userData.userId));
+    });
+
+    socket.on("code update", (updatedCode) => {
       console.log(updatedCode);
+      updateUserCode(updatedCode.userId, updatedCode.code);
     });
 
     return () => {
-      socket.off("codeUpdate");
+      socket.off("code update");
     };
   }, []);
 
   const handleEditorChange = (value: any, event: any) => {
-    setCode(value);
-    socket.emit("codeChange", value);
+    setMyCode(value);
+    socket.emit("code change", value);
   };
 
   return (
@@ -35,9 +93,10 @@ function App() {
 
       <div className="middle-content">
         <div className="editor--top">
-          <button className="editor-tab" onClick={getCode}>Person 1</button>
-          <button className="editor-tab" onClick={getCode}>Person 2</button>
-          <button className="editor-tab" onClick={getCode}>Person 3</button>
+          <button className="editor-tab" onClick={() => viewCode("", myCode, false)}>Me</button>
+          {users.map((user) => (
+            <button key={user.userId} className="editor-tab" onClick={() => viewCode(user.userId, user.code, true)}>{user.name}</button>
+          ))}
         </div>
         <div className="editor">
           <Editor
@@ -45,6 +104,7 @@ function App() {
             language={"python"}
             value={code}
             onChange={handleEditorChange}
+            options={{ readOnly: isViewingOthersCode }}
           />
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import './App.css';
 import { Editor } from '@monaco-editor/react';
 import io from 'socket.io-client';
@@ -22,7 +22,7 @@ function App() {
 
   const isViewingOthersCodeRef = useRef(isViewingOthersCode);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     isViewingOthersCodeRef.current = isViewingOthersCode;
   }, [isViewingOthersCode]);
 
@@ -82,7 +82,6 @@ function App() {
     });
 
     socket.on("code update", (updatedCode) => {
-      console.log(updatedCode);
       if (updatedCode.userId === myUserId) {
         setMyCode(updatedCode.code);
       } else {
@@ -96,11 +95,10 @@ function App() {
   }, []);
 
   const handleEditorChange = (value: any, event: any) => {
-    if (!isViewingOthersCode) {
-      console.log(`Setting my code to ${value}`);
-      setMyCode(value);
-      socket.emit("code change", value);
-    }
+    if (isViewingOthersCodeRef.current) return;
+
+    setMyCode(value);
+    socket.emit("code change", value);
   };
 
   return (
@@ -117,20 +115,13 @@ function App() {
           ))}
         </div>
         <div className="editor">
-          {isViewingOthersCode
-          ? <Editor
-              height={"95vh"}
-              language={"python"}
-              value={code}
-              options={{ readOnly: true }}
-            />
-          : <Editor
-              height={"95vh"}
-              language={"python"}
-              value={myCode}
-              onChange={handleEditorChange}
-            />
-          }
+          <Editor
+            height={"95vh"}
+            language={"python"}
+            value={isViewingOthersCode ? code : myCode}
+            onChange={handleEditorChange}
+            options={{ readOnly: isViewingOthersCode }}
+          />
         </div>
       </div>
 

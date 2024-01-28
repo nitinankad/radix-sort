@@ -81,7 +81,7 @@ io.on("connection", (socket: Socket) => {
     const user = users[socket.id];
     users[socket.id].code = codeChange;
 
-    socket.broadcast.emit("code update", { userId: user.userId, name: user.name, code: codeChange });
+    io.emit("code update", { userId: user.userId, name: user.name, code: codeChange });
   });
 });
 

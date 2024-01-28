@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { Editor } from '@monaco-editor/react';
 import io from 'socket.io-client';
@@ -13,38 +13,47 @@ const socket = io("http://localhost:8000");
 
 function App() {
   const [myCode, setMyCode] = useState("");
+  const [myName, setMyName] = useState("");
+  const [myUserId, setMyUserId] = useState("");
   const [users, setUsers] = useState<User[]>([]);
 
   const [code, setCode] = useState("");
   const [isViewingOthersCode, setIsViewingOthersCode] = useState(false);
+
+  const isViewingOthersCodeRef = useRef(isViewingOthersCode);
+
+  useEffect(() => {
+    isViewingOthersCodeRef.current = isViewingOthersCode;
+  }, [isViewingOthersCode]);
 
   const viewCode = (userId: string, code: string, isOthersCode: boolean) => {
     const index = users.findIndex(user => user.userId === userId);
 
     if (index !== -1) {
       const user = users[index];
-      console.log("Printing user");
-      console.log(user);
+      setCode(user.code);
+    } else {
+      if (!isOthersCode) {
+        setMyCode(code);
+      }
     }
 
-    if (!isOthersCode) {
-      setCode(myCode);
-    } else {
-      setCode(code);
-    }
     setIsViewingOthersCode(isOthersCode);
   };
 
   const updateUserCode = (userId: string, newCode: string) => {
-    console.log(users);
-    const index = users.findIndex(user => user.userId === userId);
+    setUsers(currentUsers => {
+      const index = currentUsers.findIndex(user => user.userId === userId);
 
-    if (index !== -1) {
-      const updatedUsers = [...users];
-      updatedUsers[index] = { ...updatedUsers[index], code: newCode };
+      if (index !== -1) {
+        const updatedUsers = [...currentUsers];
+        updatedUsers[index] = { ...updatedUsers[index], code: newCode };
 
-      setUsers(updatedUsers);
-    }
+        return updatedUsers;
+      }
+
+      return currentUsers;
+    });
   };
 
   useEffect(() => {
@@ -54,6 +63,8 @@ function App() {
       const { userId, name, code } = welcomeData;
       console.log(`Got welcomed: ${JSON.stringify(welcomeData)}`);
 
+      setMyName(name);
+      setMyUserId(userId);
       setMyCode(code);
       setCode(code);
     });
@@ -72,7 +83,11 @@ function App() {
 
     socket.on("code update", (updatedCode) => {
       console.log(updatedCode);
-      updateUserCode(updatedCode.userId, updatedCode.code);
+      if (updatedCode.userId === myUserId) {
+        setMyCode(updatedCode.code);
+      } else {
+        updateUserCode(updatedCode.userId, updatedCode.code);
+      }
     });
 
     return () => {
@@ -81,8 +96,11 @@ function App() {
   }, []);
 
   const handleEditorChange = (value: any, event: any) => {
-    setMyCode(value);
-    socket.emit("code change", value);
+    if (!isViewingOthersCode) {
+      console.log(`Setting my code to ${value}`);
+      setMyCode(value);
+      socket.emit("code change", value);
+    }
   };
 
   return (
@@ -99,13 +117,20 @@ function App() {
           ))}
         </div>
         <div className="editor">
-          <Editor
-            height={"95vh"}
-            language={"python"}
-            value={code}
-            onChange={handleEditorChange}
-            options={{ readOnly: isViewingOthersCode }}
-          />
+          {isViewingOthersCode
+          ? <Editor
+              height={"95vh"}
+              language={"python"}
+              value={code}
+              options={{ readOnly: true }}
+            />
+          : <Editor
+              height={"95vh"}
+              language={"python"}
+              value={myCode}
+              onChange={handleEditorChange}
+            />
+          }
         </div>
       </div>
 

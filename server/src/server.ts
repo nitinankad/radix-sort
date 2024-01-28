@@ -83,6 +83,12 @@ io.on("connection", (socket: Socket) => {
 
     io.emit("code update", { userId: user.userId, name: user.name, code: codeChange });
   });
+
+  socket.on("sent chat message", (message) => {
+    const user = users[socket.id];
+
+    io.emit("chat message", { user: user.name, message });
+  });
 });
 
 httpServer.listen(PORT, () => console.log(`The server is running on port ${PORT}`));

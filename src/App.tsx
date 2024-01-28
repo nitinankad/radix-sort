@@ -16,6 +16,7 @@ function App() {
   const [myName, setMyName] = useState("");
   const [myUserId, setMyUserId] = useState("");
   const [users, setUsers] = useState<User[]>([]);
+  const [chatMessage, setChatMessage] = useState("");
 
   const [code, setCode] = useState("");
   const [isViewingOthersCode, setIsViewingOthersCode] = useState(false);
@@ -89,6 +90,17 @@ function App() {
       }
     });
 
+    socket.on("chat message", (chatMessageData) => {
+      const { user, message } = chatMessageData;
+
+      const chatMessageDiv = document.createElement("div");
+      chatMessageDiv.innerHTML = `<div>${user}: ${message}</div>`;
+
+      const chatLogs = document.getElementById("chat-logs");
+
+      chatLogs?.appendChild(chatMessageDiv);
+    });
+
     return () => {
       socket.off("code update");
     };
@@ -99,6 +111,18 @@ function App() {
 
     setMyCode(value);
     socket.emit("code change", value);
+  };
+
+  const handleChatMessageEnter = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      socket.emit("sent chat message", chatMessage);
+      setChatMessage("");
+    }
+  };
+
+  const handleChatMessage = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setChatMessage(event.currentTarget.value);
   };
 
   return (
@@ -126,12 +150,18 @@ function App() {
       </div>
 
       <div className="chatbox">
-        <div className="chat-logs">
-          test
+        <div id="chat-logs" className="chat-logs">
+          <div>Welcome to Radix Sort</div>
         </div>
 
         <div className="chat-message">
-          <textarea className="chat-message-input" placeholder="Start a new message" />
+          <textarea
+            className="chat-message-input"
+            placeholder="Start a new message"
+            value={chatMessage}
+            onKeyDown={handleChatMessageEnter}
+            onChange={handleChatMessage}
+          />
         </div>
       </div>
     </div>

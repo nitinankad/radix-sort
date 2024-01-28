@@ -9,7 +9,7 @@ interface User {
   code: string;
 }
 
-const socket = io("http://localhost:8000");
+const socket = io(`${process.env.SOCKET_URL}`);
 
 function App() {
   const [myCode, setMyCode] = useState("");
@@ -97,7 +97,6 @@ function App() {
       chatMessageDiv.innerHTML = `<div>${user}: ${message}</div>`;
 
       const chatLogs = document.getElementById("chat-logs");
-
       chatLogs?.appendChild(chatMessageDiv);
     });
 

@@ -4,10 +4,10 @@
 
 [build.environment]
   GENERATE_SOURCEMAP = "false"
-  SOCKET_URL = "https://radix-sort.onrender.com"
+  REACT_APP_SOCKET_URL = "https://radix-sort.onrender.com"
   CI = "false"
   
 [build.production.environment]
   GENERATE_SOURCEMAP = "false"
-  SOCKET_URL = "https://radix-sort.onrender.com"
+  REACT_APP_SOCKET_URL = "https://radix-sort.onrender.com"
   CI = "false"

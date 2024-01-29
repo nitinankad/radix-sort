@@ -5,6 +5,7 @@ import echoRoutes from "./routes/echo.route";
 import * as dotenv from "dotenv";
 import { Server, Socket } from "socket.io";
 import { anonymousAnimals, generateId, getRandomElement } from "./utils/stringHelpers";
+import axios from "axios";
 
 dotenv.config();
 
@@ -88,6 +89,20 @@ io.on("connection", (socket: Socket) => {
     const user = users[socket.id];
 
     io.emit("chat message", { user: user.name, message });
+  });
+
+  socket.on("compile", async () => {
+    const user = users[socket.id];
+    const requester = user.name;
+    const code = user.code;
+
+    const response = await axios.post("https://godbolt.org/api/compiler/python312/compile", {"source":code,"compiler":"python312","options":{"userArguments":"","executeParameters":{"args":"","stdin":"","runtimeTools":[]},"compilerOptions":{"executorRequest":true,"skipAsm":true,"overrides":[]},"filters":{"execute":true},"tools":[],"libraries":[]},"lang":"python","files":[],"allowStoreCodeDebug":true});
+    const data = response.data;
+
+    const output = data.stdout.map((obj: any) => obj.text).join('\n');
+    const errorMessage = data.stderr.map((obj: any) => obj.text).join('\n');
+    
+    io.emit("compile results", `${requester} just compiled.\nStdOut: ${output}\nStdErr: ${errorMessage}`)
   });
 });
 

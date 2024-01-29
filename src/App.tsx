@@ -98,6 +98,14 @@ function App() {
       chatLogs?.appendChild(chatMessageDiv);
     });
 
+    socket.on("compile results", (results) => {
+      const chatMessageDiv = document.createElement("div");
+      chatMessageDiv.innerText = results;
+
+      const chatLogs = document.getElementById("chat-logs");
+      chatLogs?.appendChild(chatMessageDiv);
+    });
+
     return () => {
       socket.off("code update");
     };
@@ -122,6 +130,10 @@ function App() {
   const handleChatMessage = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setChatMessage(event.currentTarget.value);
   };
+
+  const handleRunCode = () => {
+    socket.emit("compile");
+  }
 
   return (
     <div className="container">
@@ -160,6 +172,10 @@ function App() {
             onKeyDown={handleChatMessageEnter}
             onChange={handleChatMessage}
           />
+        </div>
+
+        <div>
+          <button onClick={handleRunCode}>Run code</button>
         </div>
       </div>
     </div>

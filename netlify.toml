@@ -1,0 +1,13 @@
+[build]
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  GENERATE_SOURCEMAP = "false"
+  SOCKET_URL = "https://radix-sort.onrender.com"
+  CI = "false"
+  
+[build.production.environment]
+  GENERATE_SOURCEMAP = "false"
+  SOCKET_URL = "https://radix-sort.onrender.com"
+  CI = "false"

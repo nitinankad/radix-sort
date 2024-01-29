@@ -13,7 +13,6 @@ const socket = io(`${process.env.SOCKET_URL}`);
 
 function App() {
   const [myCode, setMyCode] = useState("");
-  const [myName, setMyName] = useState("");
   const [myUserId, setMyUserId] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [chatMessage, setChatMessage] = useState("");
@@ -64,7 +63,6 @@ function App() {
       const { userId, name, code } = welcomeData;
       console.log(`Got welcomed: ${JSON.stringify(welcomeData)}`);
 
-      setMyName(name);
       setMyUserId(userId);
       setMyCode(code);
       setCode(code);
@@ -103,6 +101,7 @@ function App() {
     return () => {
       socket.off("code update");
     };
+    // react-hooks/exhaustive-deps
   }, []);
 
   const handleEditorChange = (value: any, event: any) => {

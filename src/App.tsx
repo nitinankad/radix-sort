@@ -9,7 +9,7 @@ interface User {
   code: string;
 }
 
-const socket = io(`${process.env.SOCKET_URL}`);
+const socket = io(`${process.env.REACT_APP_SOCKET_URL}`);
 
 function App() {
   const [myCode, setMyCode] = useState("");

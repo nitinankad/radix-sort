@@ -13,6 +13,7 @@ const socket = io(`${process.env.REACT_APP_SOCKET_URL}`);
 
 function App() {
   const [myCode, setMyCode] = useState("");
+  const [myName, setMyName] = useState("");
   const [myUserId, setMyUserId] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [chatMessage, setChatMessage] = useState("");
@@ -63,6 +64,7 @@ function App() {
       const { userId, name, code } = welcomeData;
       console.log(`Got welcomed: ${JSON.stringify(welcomeData)}`);
 
+      setMyName(name);
       setMyUserId(userId);
       setMyCode(code);
       setCode(code);
@@ -143,7 +145,7 @@ function App() {
 
       <div className="middle-content">
         <div className="editor--top">
-          <button className="editor-tab" onClick={() => viewCode("", myCode, false)}>Me</button>
+          <button className="editor-tab" onClick={() => viewCode("", myCode, false)}>{myName} (Me)</button>
           {users.map((user) => (
             <button key={user.userId} className="editor-tab" onClick={() => viewCode(user.userId, user.code, true)}>{user.name}</button>
           ))}

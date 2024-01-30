@@ -53,9 +53,11 @@ io.on("connection", (socket: Socket) => {
       userId: generateId(),
       name: `Anonymous ${getRandomElement(anonymousAnimals)}`,
       code: `class Solution:
-    def main():
-        pass
-`
+      def main(self):
+          print("Your code here")
+
+sol = Solution()
+sol.main()`
     };
 
     const currentUsers: any[] = Object.values(users);

@@ -92,7 +92,7 @@ function App() {
       const { user, message } = chatMessageData;
 
       const chatMessageDiv = document.createElement("div");
-      chatMessageDiv.innerHTML = `<div>${user}: ${message}</div>`;
+      chatMessageDiv.innerText = `${user}: ${message}`;
 
       const chatLogs = document.getElementById("chat-logs");
       chatLogs?.appendChild(chatMessageDiv);

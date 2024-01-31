@@ -57,6 +57,14 @@ function App() {
     });
   };
 
+  const addChatMessage = (message: string) => {
+    const chatMessageDiv = document.createElement("div");
+    chatMessageDiv.innerText = message;
+
+    const chatLogs = document.getElementById("chat-logs");
+    chatLogs?.appendChild(chatMessageDiv);
+  };
+
   useEffect(() => {
     socket.emit("joined");
 
@@ -75,10 +83,12 @@ function App() {
     });
 
     socket.on("user joined", (userData: any) => {
+      addChatMessage(`${userData.name} has joined.`);
       setUsers(prevUsers => [...prevUsers, userData]);
     });
 
     socket.on("user left", (userData: any) => {
+      addChatMessage(`${userData.name} has left.`);
       setUsers(prevUsers => prevUsers.filter(user => user.userId !== userData.userId));
     });
 
@@ -93,19 +103,11 @@ function App() {
     socket.on("chat message", (chatMessageData) => {
       const { user, message } = chatMessageData;
 
-      const chatMessageDiv = document.createElement("div");
-      chatMessageDiv.innerText = `${user}: ${message}`;
-
-      const chatLogs = document.getElementById("chat-logs");
-      chatLogs?.appendChild(chatMessageDiv);
+      addChatMessage(`${user}: ${message}`);
     });
 
     socket.on("compile results", (results) => {
-      const chatMessageDiv = document.createElement("div");
-      chatMessageDiv.innerText = results;
-
-      const chatLogs = document.getElementById("chat-logs");
-      chatLogs?.appendChild(chatMessageDiv);
+      addChatMessage(results);
     });
 
     return () => {
